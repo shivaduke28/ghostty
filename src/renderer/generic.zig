@@ -2487,6 +2487,14 @@ pub fn Renderer(comptime GraphicsAPI: type) type {
                 state.rows,
                 self.cells.size.rows,
             );
+
+            // Determine if the preedit row needs to be rendered.
+            // Only render preedit if its row is being rebuilt (dirty or full rebuild).
+            const dirty_preedit_range = if (preedit_range) |range|
+                if (rebuild or row_dirty[range.y]) preedit_range else null
+            else
+                null;
+
             for (
                 0..,
                 row_raws[0..row_len],
@@ -3080,8 +3088,9 @@ pub fn Renderer(comptime GraphicsAPI: type) type {
             }
 
             // Setup our preedit text.
-            if (preedit) |preedit_v| {
-                const range = preedit_range.?;
+            // Only render if the preedit row was rebuilt (dirty_preedit_range is set).
+            if (dirty_preedit_range) |range| {
+                const preedit_v = preedit.?;
                 var x = range.x[0];
                 for (preedit_v.codepoints[range.cp_offset..]) |cp| {
                     self.addPreeditCell(
