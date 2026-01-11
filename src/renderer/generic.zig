@@ -566,6 +566,7 @@ pub fn Renderer(comptime GraphicsAPI: type) type {
             colorspace: configpkg.Config.WindowColorspace,
             blending: configpkg.Config.AlphaBlending,
             background_blur: configpkg.Config.BackgroundBlur,
+            ime_preedit_style: configpkg.Config.ImePreeditStyle,
 
             pub fn init(
                 alloc_gpa: Allocator,
@@ -639,6 +640,7 @@ pub fn Renderer(comptime GraphicsAPI: type) type {
                     .colorspace = config.@"window-colorspace",
                     .blending = config.@"alpha-blending",
                     .background_blur = config.@"background-blur",
+                    .ime_preedit_style = config.@"ime-preedit-style",
                     .arena = arena,
                 };
             }
@@ -3370,9 +3372,11 @@ pub fn Renderer(comptime GraphicsAPI: type) type {
             screen_bg: terminal.color.RGB,
             screen_fg: terminal.color.RGB,
         ) !void {
-            // Preedit is rendered inverted
-            const bg = screen_fg;
-            const fg = screen_bg;
+            // Choose colors based on ime-preedit-style config
+            const bg, const fg = switch (self.config.ime_preedit_style) {
+                .invert => .{ screen_fg, screen_bg },
+                .underline => .{ screen_bg, screen_fg },
+            };
 
             // Render the glyph for our preedit text
             const render_ = self.font_grid.renderCodepoint(
@@ -3412,6 +3416,14 @@ pub fn Renderer(comptime GraphicsAPI: type) type {
                     @intCast(render.glyph.offset_y),
                 },
             });
+
+            // Add underline for preedit text when using underline style
+            if (self.config.ime_preedit_style == .underline) {
+                try self.addUnderline(@intCast(coord.x), @intCast(coord.y), .single, fg, 255);
+                if (cp.wide and coord.x < self.cells.size.columns - 1) {
+                    try self.addUnderline(@intCast(coord.x + 1), @intCast(coord.y), .single, fg, 255);
+                }
+            }
         }
 
         /// Sync the atlas data to the given texture. This copies the bytes
