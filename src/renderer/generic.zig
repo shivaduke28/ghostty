@@ -3370,9 +3370,9 @@ pub fn Renderer(comptime GraphicsAPI: type) type {
             screen_bg: terminal.color.RGB,
             screen_fg: terminal.color.RGB,
         ) !void {
-            // Preedit is rendered inverted
-            const bg = screen_fg;
-            const fg = screen_bg;
+            // Preedit is rendered with underline instead of inverted colors
+            const bg = screen_bg;
+            const fg = screen_fg;
 
             // Render the glyph for our preedit text
             const render_ = self.font_grid.renderCodepoint(
@@ -3412,6 +3412,12 @@ pub fn Renderer(comptime GraphicsAPI: type) type {
                     @intCast(render.glyph.offset_y),
                 },
             });
+
+            // Add underline for preedit text
+            try self.addUnderline(@intCast(coord.x), @intCast(coord.y), .single, fg, 255);
+            if (cp.wide and coord.x < self.cells.size.columns - 1) {
+                try self.addUnderline(@intCast(coord.x + 1), @intCast(coord.y), .single, fg, 255);
+            }
         }
 
         /// Sync the atlas data to the given texture. This copies the bytes
