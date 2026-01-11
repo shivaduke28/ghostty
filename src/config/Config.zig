@@ -820,6 +820,15 @@ palette: Palette = .{},
 /// way to implement it.
 @"cursor-click-to-move": bool = true,
 
+/// The style of the IME preedit text (text being composed by an input method
+/// editor, such as when typing Japanese or Chinese).
+///
+/// Valid values are:
+///
+///   * `invert`: The preedit text is rendered with inverted colors (default).
+///   * `underline`: The preedit text is rendered with an underline.
+@"ime-preedit-style": ImePreeditStyle = .invert,
+
 /// Hide the mouse immediately when typing. The mouse becomes visible again
 /// when the mouse is used (button, movement, etc.). Platform-specific behavior
 /// may dictate other scenarios where the mouse is shown. For example on macOS,
@@ -8334,6 +8343,12 @@ pub const WindowTheme = enum {
 pub const WindowColorspace = enum {
     srgb,
     @"display-p3",
+};
+
+/// See ime-preedit-style
+pub const ImePreeditStyle = enum {
+    invert,
+    underline,
 };
 
 /// See macos-window-buttons
